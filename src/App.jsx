@@ -1,46 +1,101 @@
-import { useContext, useState } from "react"
-import { CountContext } from "./context";
-import { Navigate } from "react-router-dom";
+import { RecoilRoot, useRecoilValue, useSetRecoilState } from "recoil";
 
+import { countAtom, evenSelector } from "./store/atoms/count";
+import { useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0);  
   // wrap anyone that wants to use the teleported value inside a provider
   // recoil, redux, Themes in mUI
+  // console.log(" app component re-rendered");
+
   return (
     <div>
-      <CountContext.Provider value={count}>
-        <Count setCount={setCount} />
-      </CountContext.Provider>
+      <RecoilRoot>
+        <Count />
+      </RecoilRoot>
     </div>
-  )
+  );
 }
 
-function Count({setCount}) {
-  return <div>
-    <CountRenderer />
-    <Buttons setCount={setCount} />
-  </div>
+function Count() {
+  // console.log(" count component re-rendered");
+  const count = useRecoilValue(countAtom);
+
+  return (
+    <div>
+      <CountRenderer />
+      <Input />
+      <Buttons />
+    </div>
+  );
+}
+
+function Input() {
+  const [inputValue, setInputValue] = useState("");
+  return (
+    <div>
+      <input
+        onChange={(e) => {
+          setInputValue(e.target.value);
+        }}
+        type="text"
+      />
+    </div>
+  );
 }
 
 function CountRenderer() {
-  const count = useContext(CountContext);
-  return <div>
-    {count}
-  </div>
+  // console.log("CountRenderer Reloaded");
+  return (
+    <div>
+      <EvenCountRenderer />
+    </div>
+  );
 }
 
-function Buttons({setCount}) {
-  const count = useContext(CountContext);
-  return <div>
-    <button onClick={() => {
-      setCount(count + 1)
-    }}>Increase</button>
+function EvenCountRenderer() {
+  const count = useRecoilValue(countAtom);
+  const isEven = useRecoilValue(evenSelector);
 
-    <button onClick={() => {
-      setCount(count - 1)
-    }}>Decrease</button>
-  </div>
+  // const isEven = useMemo(() => {
+  //   return count % 2 == 0;
+  // }, [count]);
+  return (
+    <div>
+      <b>{count}</b>
+
+      {isEven ? "It is EVEN" : ""}
+    </div>
+  );
 }
 
-export default App
+function Buttons() {
+  const setCount = useSetRecoilState(countAtom);
+  return (
+    <div>
+      <button
+        onClick={() => {
+          setCount((count) => count + 1);
+        }}
+      >
+        Increase
+      </button>
+
+      <button
+        onClick={() => {
+          setCount((count) => count - 1);
+        }}
+      >
+        Decrease
+      </button>
+    </div>
+  );
+}
+
+export default App;
+
+// // 2 input boxes
+// // title, description
+// // todos
+// // filter (gym) => atom
+// // selector (the current set of todos)
